@@ -10,11 +10,12 @@ namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\" 
-            + System.Environment.UserName 
+        static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\"
+            + System.Environment.UserName
             + @"\source\repos\Okazje\Okazje\Baza\Baza.mdf;Integrated Security=True");
         static SqlCommand cmd = new SqlCommand();
-        private static void init() {
+        private static void init()
+        {
             cmd.Connection = con;
             cmd.CommandType = System.Data.CommandType.Text;
             con.Open();
@@ -37,6 +38,7 @@ namespace Okazje.Klasy
                     foreach (var data in reader)
                     {
                         var dupa = reader;
+
                     }
                 }
             }
@@ -44,18 +46,53 @@ namespace Okazje.Klasy
             con.Close();
             return lt_wynik;
         }
-        public bool Insertion(string polecenie, List<string> kolumny)
+        public bool Insertion(string table, List<string> columns, DataTable values, string additionalOptions)
         {
             init();
             var lv_success = false;
+            var lv_columns = "";
+            var lv_querry = "";
 
-            //basdasdasdasd
+            //preparing columns
+            foreach (var row in columns)
+            {
+                lv_columns += "," + row;
+            }
+            lv_columns = lv_columns.Substring(1, lv_columns.Length - 1);
 
-
+            //command = "INSERT INTO KATEGORIE " +
+            //            "(nazwa, numerKategorii, urlKategorii) " +
+            //            "VALUES ('')";
+            var lv_columns_count = values.Columns.Count;
+            try
+            {
+                foreach (DataRow data in values.Rows)
+                {
+                    var lv_values = "";
+                    for (var i = 0; i < lv_columns_count; i++)
+                    {
+                        lv_values += "," + data[i].ToString();
+                    }
+                    lv_values = lv_values.Substring(1, lv_values.Length - 1);
+                    lv_querry = "INSERT INTO " + table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + additionalOptions.ToUpper();
+                    cmd.CommandText = (lv_querry);
+                    cmd.ExecuteNonQuery();
+                }
+                lv_success = true;
+            }
+            catch (Exception e) { }
             // ((zmienna == '') ? tak : nie)
-
             con.Close();
             return lv_success;
+        }
+        public void WipeKategories()
+        {
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                cmd.CommandText = ("DELETE * FROM KATEGORIE");
+                cmd.ExecuteNonQuery();
+            }
+            con.Close();
         }
     }
 }

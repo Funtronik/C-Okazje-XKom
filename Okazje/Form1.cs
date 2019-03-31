@@ -38,16 +38,38 @@ namespace Okazje
         private void insertCategories(DataTable categories)
         {
             clearVariables();
-            command = "select * from kategorie";
+            Baza.WipeKategories(); // Clear categories entries form table KATEGORIES
+
+            var lv_max_index_category = 0;
+
+            command = "SELECT * FROM kategorie";
             //command = "select MAX(numerKategorii) from KATEGORIE";
             CommandFields.Add("numerKategorii");
-            DataTable lt_result = new DataTable();
+            var lt_result = new DataTable();
             lt_result.Columns.Add("numerKategorii");
             lt_result = Baza.Selection(command, CommandFields);
-            var lv_max_index_kategoria = lt_result.Rows[0][0].ToString();
+            if (lt_result.Rows.Count > 0)
+            {
+                lv_max_index_category = int.Parse(lt_result.Rows[0][0].ToString());
+                MessageBox.Show(lv_max_index_category.ToString());
+            }
 
-            MessageBox.Show(lv_max_index_kategoria);
+            // Prepare values in table
+            var lt_values_to_insert = new DataTable();
+            lt_values_to_insert.Columns.Add("nazwa");
+            lt_values_to_insert.Columns.Add("index");
+            lt_values_to_insert.Columns.Add("url");
 
+            foreach (DataRow row in categories.Rows)
+            {
+                lt_values_to_insert.Rows.Add(row[0], lv_max_index_category++, row[1]);
+            }
+
+            command = "INSERT INTO KATEGORIE " +
+                        "(nazwa, numerKategorii, urlKategorii) " +
+                        "VALUES ('')";
+            
+            Baza.Insertion(command,)
             clearVariables();
 
         }

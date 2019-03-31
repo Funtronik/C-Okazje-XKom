@@ -10,3 +10,15 @@ C:\Users\mjk\source\repos\Okazje\Okazje\obj\Debug\Okazje.exe
 C:\Users\mjk\source\repos\Okazje\Okazje\obj\Debug\Okazje.pdb
 C:\Users\mjk\source\repos\Okazje\Okazje\bin\Debug\Baza\Baza.mdf
 C:\Users\mjk\source\repos\Okazje\Okazje\bin\Debug\Baza\Baza_log.ldf
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\bin\Debug\Baza\Baza.mdf
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\bin\Debug\Baza\Baza_log.ldf
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\bin\Debug\Okazje.exe.config
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\bin\Debug\Okazje.exe
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\bin\Debug\Okazje.pdb
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.csprojAssemblyReference.cache
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.Form1.resources
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.Properties.Resources.resources
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.csproj.GenerateResource.cache
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.csproj.CoreCompileInputs.cache
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.exe
+C:\Users\Luigiana\Source\Repos\Okazje\Okazje\obj\Debug\Okazje.pdb

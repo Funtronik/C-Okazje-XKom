@@ -60,16 +60,21 @@ namespace Okazje
             lt_values_to_insert.Columns.Add("index");
             lt_values_to_insert.Columns.Add("url");
 
+            var ll_columns = new List<string>();
+            ll_columns.Add("nazwa");
+            ll_columns.Add("numerKategorii");
+            ll_columns.Add("urlKategorii");
+
             foreach (DataRow row in categories.Rows)
             {
                 lt_values_to_insert.Rows.Add(row[0], lv_max_index_category++, row[1]);
             }
+            //command = "INSERT INTO KATEGORIE " +
+            //            "(nazwa, numerKategorii, urlKategorii) " +
+            //            "VALUES ('')";
 
-            command = "INSERT INTO KATEGORIE " +
-                        "(nazwa, numerKategorii, urlKategorii) " +
-                        "VALUES ('')";
-            
-            Baza.Insertion(command,)
+            Baza.Insertion("KATEGORIE", ll_columns, lt_values_to_insert,"");
+
             clearVariables();
 
         }
@@ -77,17 +82,24 @@ namespace Okazje
         {
             DataTable lt_categories = new DataTable();
             lt_categories.Columns.Add("Kategoria");
+            lt_categories.Columns.Add("Url");
 
             var url = "https://www.x-kom.pl/";
             var htmlCode = "";
             using (WebClient client = new WebClient()) { htmlCode = client.DownloadString(url); }
-            Regex rx = new Regex(@"href=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //Regex rx = new Regex(@"<a\s+(?:[^>]*?\s+)?href=([""'])(.*?)\a>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            MatchCollection matches = rx.Matches(htmlCode);
-            foreach (Match m in matches)
+            //MatchCollection matches = rx.Matches(htmlCode);
+
+            var lv_pattern = @"<a href=""(.*?)a>";
+            foreach (Match m in Regex.Matches(htmlCode, lv_pattern))
             {
                 if (m.Value.Contains("/g-"))
-                    lt_categories.Rows.Add(url + m.Value.Substring(7, m.Value.Length - 7));
+                {
+                    var ls_url = m.Value.ToString().Split('"');
+
+                    lt_categories.Rows.Add(ls_url[2].Substring(1,ls_url[2].Length-5), url + ls_url[1]);
+                }
             }
             insertCategories(lt_categories);
         }
@@ -103,7 +115,7 @@ namespace Okazje
             {
                 var categoryURL = row[0].ToString();
                 using (WebClient client = new WebClient()) { htmlCode = client.DownloadString(categoryURL); }
-
+                //href =\""(.*?)\""
                 Regex rx = new Regex(@"href=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 MatchCollection matches = rx.Matches(htmlCode);
                 foreach (Match m in matches)

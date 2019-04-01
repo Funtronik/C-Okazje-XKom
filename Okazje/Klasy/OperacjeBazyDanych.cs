@@ -10,9 +10,7 @@ namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\"
-            + System.Environment.UserName
-            + @"\source\repos\Okazje\Okazje\Baza\Baza.mdf;Integrated Security=True");
+        static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Workspace\Okazje\Okazje\Baza\Baza.mdf;Integrated Security=True");
         static SqlCommand cmd = new SqlCommand();
         private static void init()
         {
@@ -71,7 +69,7 @@ namespace Okazje.Klasy
                     var lv_values = "";
                     for (var i = 0; i < lv_columns_count; i++)
                     {
-                        lv_values += "," + data[i].ToString();
+                        lv_values += ",'" + data[i].ToString()+"'";
                     }
                     lv_values = lv_values.Substring(1, lv_values.Length - 1);
                     lv_querry = "INSERT INTO " + table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + additionalOptions.ToUpper();
@@ -80,18 +78,16 @@ namespace Okazje.Klasy
                 }
                 lv_success = true;
             }
-            catch (Exception e) { }
+            catch (Exception e) { con.Close(); return false; }
             // ((zmienna == '') ? tak : nie)
             con.Close();
             return lv_success;
         }
         public void WipeKategories()
         {
-            using (SqlDataReader reader = cmd.ExecuteReader())
-            {
-                cmd.CommandText = ("DELETE * FROM KATEGORIE");
-                cmd.ExecuteNonQuery();
-            }
+            init();
+            cmd.CommandText = ("DELETE FROM KATEGORIE");
+            cmd.ExecuteNonQuery();
             con.Close();
         }
     }

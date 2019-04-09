@@ -18,53 +18,38 @@ namespace Okazje.Klasy
             cmd.CommandType = System.Data.CommandType.Text;
             con.Open();
         }
-        public DataTable Selection(string polecenie, List<string> kolumny)
+        public DataTable Selection(string iv_command)
         {
             init();
 
-            //Prepare table
-            DataTable lt_wynik = new DataTable();
-            foreach (String row in kolumny)
-                lt_wynik.Columns.Add(row);
+            DataTable lt_values = new DataTable();
+            var lv_database_comm = new SqlCommand(iv_command, con);
+            SqlDataAdapter da = new SqlDataAdapter(lv_database_comm);
 
-            cmd.CommandText = (polecenie);
-
-            using (SqlDataReader reader = cmd.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    foreach (var data in reader)
-                    {
-                        var dupa = reader;
-
-                    }
-                }
-            }
+            da.Fill(lt_values);
 
             con.Close();
-            return lt_wynik;
+            return lt_values;
         }
-        public bool Insertion(string table, List<string> columns, DataTable values, string additionalOptions)
+        public bool Insertion(string iv_table, string [] ia_columns, DataTable it_values, string iv_additionalOptions)
         {
+            //WipeCategories();
             init();
             var lv_success = false;
             var lv_columns = "";
             var lv_querry = "";
 
             //preparing columns
-            foreach (var row in columns)
+            foreach (var row in ia_columns)
             {
                 lv_columns += "," + row;
             }
             lv_columns = lv_columns.Substring(1, lv_columns.Length - 1);
 
-            //command = "INSERT INTO KATEGORIE " +
-            //            "(nazwa, numerKategorii, urlKategorii) " +
-            //            "VALUES ('')";
-            var lv_columns_count = values.Columns.Count;
+            var lv_columns_count = it_values.Columns.Count;
             try
             {
-                foreach (DataRow data in values.Rows)
+                foreach (DataRow data in it_values.Rows)
                 {
                     var lv_values = "";
                     for (var i = 0; i < lv_columns_count; i++)
@@ -72,7 +57,7 @@ namespace Okazje.Klasy
                         lv_values += ",'" + data[i].ToString()+"'";
                     }
                     lv_values = lv_values.Substring(1, lv_values.Length - 1);
-                    lv_querry = "INSERT INTO " + table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + additionalOptions.ToUpper();
+                    lv_querry = "INSERT INTO " + iv_table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + iv_additionalOptions.ToUpper();
                     cmd.CommandText = (lv_querry);
                     cmd.ExecuteNonQuery();
                 }
@@ -83,11 +68,28 @@ namespace Okazje.Klasy
             con.Close();
             return lv_success;
         }
-        public void WipeKategories()
+        public void WipeCategories()
         {
             init();
-            cmd.CommandText = ("DELETE FROM KATEGORIE");
+            cmd.CommandText = ("DELETE FROM categories");
             cmd.ExecuteNonQuery();
+            con.Close();
+        }
+        public void WipeProducts()
+        {
+            init();
+
+            cmd.CommandText = ("DELETE FROM product");
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = ("DELETE FROM productDetail");
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = ("DELETE FROM productLinks");
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = ("DELETE FROM productPrices");
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = ("DELETE FROM productQuantity");
+            cmd.ExecuteNonQuery();
+
             con.Close();
         }
     }

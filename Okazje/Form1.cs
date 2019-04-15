@@ -23,6 +23,10 @@ namespace Okazje
         public Form1()
         {
             InitializeComponent();
+            SpecialMethods.lo_ToolStripLabel = toolStripStatusLabel1;
+            SpecialMethods.lo_ToolStripProgressBar = toolStripProgressBar1;
+            SpecialMethods.lo_ToolStrip = statusStrip1;
+            SpecialMethods.lo_ToolSttipLabelAdditional = toolStripStatusLabel2;
         }
         private void clearVariables()
         {
@@ -125,9 +129,16 @@ namespace Okazje
             if (int.TryParse(lt_max_product_id.Rows[0][0].ToString(), out var dummy))
                 lv_actual_max_id = int.Parse(lt_max_product_id.Rows[0][0].ToString());
 
+            //For ProgressBar
+            var lv_current_category_index = 0;
+            var lv_max_category_index = categories.Rows.Count;
+
             //Get Products
             foreach (DataRow row in categories.Rows)
             {
+                SpecialMethods.progressBarUpdate(lv_current_category_index, lv_max_category_index, "Category");
+                lv_current_category_index++;
+
                 var categoryURL = row[3].ToString();
                 var url = "https://" + categoryURL + "/";
                 for (int i = 1; i < 21; i++)
@@ -144,10 +155,13 @@ namespace Okazje
                     foreach (Match m in matches)
                     {
                         var val = "";
-                        if (m.Value.Contains("/p/"))
+                        if (m.Value.Contains("www.x-kom.pl/p/"))
                         {
+                            //Exclude
                             if (m.Value.Contains("#reviews")) continue;
                             if (m.Value.Contains("?page=")) continue;
+                            if (m.Value.Contains("/c/")) continue;
+
                             if (m.Value.Contains("www.x-kom.p"))
                             {
                                 val = m.Value.Substring(6, m.Value.Length - 7);
@@ -158,6 +172,7 @@ namespace Okazje
                                 val = url + m.Value.Substring(7, m.Value.Length - 7);
                                 lt_product_urls_from_cat.Rows.Add(val, row[2]);
                             }
+                            SpecialMethods.additionalLabelStatusBar("Products :" + lt_product_urls_from_cat.Rows.Count.ToString());
                         }
                     }
                 }
@@ -187,14 +202,19 @@ namespace Okazje
 
             }
 
-            MessageBox.Show(Baza.Insertion("PRODUCT", ll_columns_products, lt_product_to_insert, "").ToString());
-            MessageBox.Show(Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "").ToString());
+            Baza.Insertion("PRODUCT", ll_columns_products, lt_product_to_insert, "");
+            Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "");
+
+            SpecialMethods.progressBarDone();
         }
         private void Button2_Click(object sender, EventArgs e) // Refresh DataGrids
         {
             var lt_categories = Baza.Selection("SELECT * FROM categories");
             dataGridView1.DataSource = lt_categories;
-            var lt_product = Baza.Selection("SELECT * FROM product AS T0 INNER JOIN productLinks AS T1 on T1.productId = T0.productId");
+            var lt_product = Baza.Selection("SELECT T0.productId, T2.categoryName, T1.productUrl, T1.productDomain, T1.linkId " +
+                "FROM product AS T0 " +
+                "INNER JOIN productLinks AS T1 on T1.productId = T0.productId " +
+                "INNER JOIN categories AS T2 on T0.categoryId = T2.categoryId ");
             dataGridView2.DataSource = lt_product;
             //var lt_productDetail = Baza.Selection("SELECT * FROM productDetail");
             //dataGridView3.DataSource = lt_productDetail;
@@ -216,6 +236,106 @@ namespace Okazje
         private void Button5_Click(object sender, EventArgs e)
         {
             Baza.WipeProducts();
+        }
+
+        private void DataGridView2_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            //Wyswietlanie row
+        }
+
+        private void Button6_Click(object sender, EventArgs e)
+        {
+            var lt_productLinks = Baza.Selection("SELECT TOP 10 T0.productId, T1.productUrl FROM product AS T0 " +
+                "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId");
+
+            string[] la_search_parameters_product = new string[] {
+                "product:price",
+                "product:sale_price",
+                "product:original_price",
+                "product:condition",
+                "og:image"
+            };
+            string[] la_seach_parameters_data_product = new string[] {
+                "data-product-name",
+                "data-product-price",
+                "data-product-brand",
+                "data-product-category"
+            };
+
+            string[] la_datatable_columns = new string[]
+            {
+                //standard
+                "productId",
+                "productUrl",
+                //product:
+                "product:price",
+                "product:sale_price",
+                "product:original_price",
+                "product:condition",
+                "og:image",
+                //data-product
+                "data-product-name",
+                "data-product-price",
+                "data-product-brand",
+                "data-product-category",
+            };
+
+            var lv_items_to_process = lt_productLinks.Rows.Count;
+
+            var lt_product_line_to_insert = SpecialMethods.addColumns(la_datatable_columns);
+
+            var lv_index = 0;
+
+            foreach (DataRow row in lt_productLinks.Rows)
+            {
+                SpecialMethods.progressBarUpdate(lv_index, lv_items_to_process, "Link");
+                lt_product_line_to_insert.Rows.Add();
+
+                var lv_html = "";
+                using (WebClient client = new WebClient())
+                {
+                    var htmlData = client.DownloadData(row["productUrl"].ToString());
+                    lv_html = Encoding.UTF8.GetString(htmlData);
+                }
+
+                //product:
+                foreach (var parameter in la_search_parameters_product)
+                {
+                    var lv_fetched_val = SpecialMethods.getProductParameter(parameter, lv_html);
+                    if (lv_fetched_val == "") continue;
+
+                    Regex regex = new Regex(@"content=""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var lt_matches = regex.Matches(lv_fetched_val);
+                    lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
+                }
+
+                //data-product:
+                foreach (var parameter in la_seach_parameters_data_product)
+                {
+                    var lv_fetched_val = SpecialMethods.getProductParameterV2(parameter, lv_html);
+                    if (lv_fetched_val == "") continue;
+
+                    Regex regex = new Regex(@"=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var lt_matches = regex.Matches(lv_fetched_val);
+                    lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
+                }
+
+                //Additional parameters of current line from ProductList
+                lt_product_line_to_insert.Rows[lv_index]["productId"] = row["productId"];
+                lt_product_line_to_insert.Rows[lv_index]["productUrl"] = row["productUrl"];
+
+                lv_index++;
+            }
+
+            dataGridView2.DataSource = lt_product_line_to_insert;
+            SpecialMethods.progressBarDone();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            toolStripProgressBar1.Visible = false;
+            toolStripStatusLabel1.Visible = false;
+            toolStripStatusLabel2.Visible = false;
         }
     }
 }

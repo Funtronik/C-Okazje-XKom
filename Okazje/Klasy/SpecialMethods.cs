@@ -2,13 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace Okazje.Klasy
 {
@@ -18,6 +18,7 @@ namespace Okazje.Klasy
         public ToolStripProgressBar lo_ToolStripProgressBar;
         public ToolStrip lo_ToolStrip;
         public ToolStripLabel lo_ToolSttipLabelAdditional;
+        public ToolStripLabel lo_ToolStripLabelErrors;
 
         public DataTable RemoveDuplicateRows(DataTable table, string DistinctColumn)
         {
@@ -117,6 +118,16 @@ namespace Okazje.Klasy
             lo_ToolSttipLabelAdditional.Visible = true;
             lo_ToolSttipLabelAdditional.Text = iv_value;
             lo_ToolStrip.Update();
+        }
+
+        public void showErrors(int iv_value)
+        {
+            if (iv_value == 0) return;
+
+            lo_ToolStripLabelErrors.Visible = true;
+            lo_ToolStripLabelErrors.Text = iv_value.ToString();
+            var lo_image = Image.FromFile(@"C:\Workspace\Okazje\Okazje\Images\error_icon.jpg");
+            lo_ToolStripLabelErrors.Image = lo_image;
         }
     }
 }

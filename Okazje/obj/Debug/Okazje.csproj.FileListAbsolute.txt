@@ -34,3 +34,8 @@ C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.csproj.GenerateResource.cache
 C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.csproj.CoreCompileInputs.cache
 C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.exe
 C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.pdb
+C:\Workspace\Okazje\Okazje\bin\Debug\Google.Protobuf.dll
+C:\Workspace\Okazje\Okazje\bin\Debug\MySql.Data.dll
+C:\Workspace\Okazje\Okazje\bin\Debug\Google.Protobuf.xml
+C:\Workspace\Okazje\Okazje\bin\Debug\MySql.Data.xml
+C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.csproj.CopyComplete

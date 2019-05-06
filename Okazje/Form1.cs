@@ -19,6 +19,7 @@ namespace Okazje
         Okazje.Klasy.OperacjeBazyDanych Baza = new Klasy.OperacjeBazyDanych();
         Okazje.Klasy.SpecialMethods SpecialMethods = new Klasy.SpecialMethods();
         string command;
+        int gv_errors_occured = 0;
 
         public Form1()
         {
@@ -27,9 +28,11 @@ namespace Okazje
             SpecialMethods.lo_ToolStripProgressBar = toolStripProgressBar1;
             SpecialMethods.lo_ToolStrip = statusStrip1;
             SpecialMethods.lo_ToolSttipLabelAdditional = toolStripStatusLabel2;
+            SpecialMethods.lo_ToolStripLabelErrors = toolStripStatusLabel3;
         }
         private void clearVariables()
         {
+            gv_errors_occured = 0;
             command = "";
         }
 
@@ -140,27 +143,38 @@ namespace Okazje
                 lv_current_category_index++;
 
                 var categoryURL = row[3].ToString();
-                var url = "https://" + categoryURL + "/";
-                for (int i = 1; i < 21; i++)
+                var url = "https://" + categoryURL;
+                for (int i = 1; i < 99; i++)
                 {
                     var lv_url_additional_options = "?page=" + i + "&per_page=90";
                     using (WebClient client = new WebClient())
                     {
-                        var htmlData = client.DownloadData(url + lv_url_additional_options);
-                        var code = Encoding.UTF8.GetString(htmlData);
-                        htmlCode = code;
+                        byte[] htmlData;
+                        try
+                        {
+                            var temp = url + lv_url_additional_options;
+                            htmlData = client.DownloadData(temp);
+                        }catch (Exception e)
+                        {
+                            gv_errors_occured++;
+                            continue;
+                        }
+                        htmlCode = Encoding.UTF8.GetString(htmlData);
+                        htmlData = null;
                     }
                     Regex rx = new Regex(@"href=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                     MatchCollection matches = rx.Matches(htmlCode);
+                    htmlCode = "";
                     foreach (Match m in matches)
                     {
                         var val = "";
-                        if (m.Value.Contains("www.x-kom.pl/p/"))
+                        if (m.Value.Contains("/p/"))
                         {
                             //Exclude
                             if (m.Value.Contains("#reviews")) continue;
                             if (m.Value.Contains("?page=")) continue;
                             if (m.Value.Contains("/c/")) continue;
+                            if (m.Value.Contains("https://")) continue;
 
                             if (m.Value.Contains("www.x-kom.p"))
                             {
@@ -169,7 +183,7 @@ namespace Okazje
                             }
                             else
                             {
-                                val = url + m.Value.Substring(7, m.Value.Length - 7);
+                                val = "www.x-kom.pl/" + m.Value.Substring(7, m.Value.Length - 8);
                                 lt_product_urls_from_cat.Rows.Add(val, row[2]);
                             }
                             SpecialMethods.additionalLabelStatusBar("Products :" + lt_product_urls_from_cat.Rows.Count.ToString());
@@ -177,7 +191,7 @@ namespace Okazje
                     }
                 }
             }
-
+            dataGridView1.DataSource = lt_product_urls_from_cat;
             lt_product_urls_from_cat = SpecialMethods.RemoveDuplicateRows(lt_product_urls_from_cat, "productUrl");
 
             //Insertion to DataBase
@@ -206,6 +220,8 @@ namespace Okazje
             Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "");
 
             SpecialMethods.progressBarDone();
+            SpecialMethods.showErrors(gv_errors_occured);
+            clearVariables();
         }
         private void Button2_Click(object sender, EventArgs e) // Refresh DataGrids
         {
@@ -224,8 +240,8 @@ namespace Okazje
 
         private void Button3_Click(object sender, EventArgs e) //Download Product from cat
         {
-            var lt_results = Baza.Selection("SELECT TOP 10 * FROM categories");
-            getProductsFromCategoties(lt_results);
+            var lt_categories = Baza.Selection("SELECT * FROM categories LIMIT 1");
+            getProductsFromCategoties(lt_categories);
         }
 
         private void Button4_Click(object sender, EventArgs e)
@@ -243,10 +259,12 @@ namespace Okazje
             //Wyswietlanie row
         }
 
-        private void Button6_Click(object sender, EventArgs e)
+        private void Button6_Click(object sender, EventArgs e) // get product details button
         {
-            var lt_productLinks = Baza.Selection("SELECT TOP 10 T0.productId, T1.productUrl FROM product AS T0 " +
-                "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId");
+            var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
+                "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId LIMIT 40");
+
+            if (lt_productLinks == null) return;
 
             string[] la_search_parameters_product = new string[] {
                 "product:price",
@@ -281,10 +299,9 @@ namespace Okazje
             };
 
             var lv_items_to_process = lt_productLinks.Rows.Count;
+            var lv_index = 0;
 
             var lt_product_line_to_insert = SpecialMethods.addColumns(la_datatable_columns);
-
-            var lv_index = 0;
 
             foreach (DataRow row in lt_productLinks.Rows)
             {
@@ -294,8 +311,16 @@ namespace Okazje
                 var lv_html = "";
                 using (WebClient client = new WebClient())
                 {
-                    var htmlData = client.DownloadData(row["productUrl"].ToString());
-                    lv_html = Encoding.UTF8.GetString(htmlData);
+                    byte[] htmlData;
+                    try
+                    {
+                        htmlData = client.DownloadData(row["productUrl"].ToString());
+                        lv_html = Encoding.UTF8.GetString(htmlData);
+                    }catch (Exception ex)
+                    {
+                        gv_errors_occured++;
+                        continue;
+                    }
                 }
 
                 //product:
@@ -327,8 +352,45 @@ namespace Okazje
                 lv_index++;
             }
 
-            dataGridView2.DataSource = lt_product_line_to_insert;
+            // Insert Details if not exist in table
+            lv_index = 0;
+            lv_items_to_process = lt_product_line_to_insert.Rows.Count;
+
+            string[] la_product_details_columns = new string[]
+            {
+                "productId",
+                "productFullName",
+                "productParameters",
+                "productModel",
+                "productManufacturer",
+                "productImageUrl"
+            };
+            var lt_product_details = SpecialMethods.addColumns(la_product_details_columns);
+
+            foreach (DataRow line in lt_product_line_to_insert.Rows)
+            {
+                SpecialMethods.progressBarUpdate(lv_index, lv_items_to_process, "Product Detail");
+                lv_index++;
+
+                var ls_current_prod_details = Baza.Selection(@"SELECT * FROM productdetail where productId = '"+ line[0] + "'");
+                if (ls_current_prod_details.Rows.Count > 0) continue;
+
+                lt_product_details.Rows.Add(line["productId"],
+                    line["data-product-name"],
+                    line["data-product-category"].ToString().Replace("&quot;", "cale"),
+                    line["data-product-name"].ToString().Split(' ')[1],
+                    line["data-product-brand"],
+                    line["og:image"]);
+            }
+
+            if (lt_productLinks.Rows.Count > 0)
+            Baza.Insertion("productdetail", la_product_details_columns, lt_product_details, "");
+
+            // End of everything
+            dataGridView2.DataSource = lt_product_details;
             SpecialMethods.progressBarDone();
+            SpecialMethods.showErrors(gv_errors_occured);
+            clearVariables();
         }
 
         private void Form1_Load(object sender, EventArgs e)

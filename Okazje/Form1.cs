@@ -126,7 +126,7 @@ namespace Okazje
             lt_product_urls_from_cat = SpecialMethods.addColumns(la_columns);
 
             //Get Max current ID
-            var lt_max_product_id = Baza.Selection("SELECT MAX(productId) FROM product");
+            var lt_max_product_id = Baza.Selection("SELECT MAX(CAST(productId AS SIGNED)) FROM product");
             var lv_actual_max_id = 0;
 
             if (int.TryParse(lt_max_product_id.Rows[0][0].ToString(), out var dummy))
@@ -136,6 +136,9 @@ namespace Okazje
             var lv_current_category_index = 0;
             var lv_max_category_index = categories.Rows.Count;
 
+            //For safety
+            var lv_is_unnecessary = false;
+
             //Get Products
             foreach (DataRow row in categories.Rows)
             {
@@ -144,8 +147,30 @@ namespace Okazje
 
                 var categoryURL = row[3].ToString();
                 var url = "https://" + categoryURL;
+                var lv_rows_added = 0;
                 for (int i = 1; i < 99; i++)
                 {
+                    if (lv_is_unnecessary)
+                    {
+                        lv_is_unnecessary = false;
+                        break;
+                    }
+                    //for safety delete last 30 product from "proposal" section 
+                    //at the end of page if no real product were selected from page.
+
+                    if (lv_rows_added == 30 || lv_rows_added == 38 || lv_rows_added == 36)
+                    {
+                        var lv_row_index = lt_product_urls_from_cat.Rows.Count;
+                        for (int a = 1; a <= lv_rows_added; a++)
+                        {
+                            var lv_to_delete = lv_row_index - a;
+                            lt_product_urls_from_cat.Rows.RemoveAt(lv_to_delete);
+                        }
+                        lv_rows_added = 0;
+                        lv_is_unnecessary = true;
+                        continue;
+                    }
+                    lv_rows_added = 0;
                     var lv_url_additional_options = "?page=" + i + "&per_page=90";
                     using (WebClient client = new WebClient())
                     {
@@ -154,7 +179,8 @@ namespace Okazje
                         {
                             var temp = url + lv_url_additional_options;
                             htmlData = client.DownloadData(temp);
-                        }catch (Exception e)
+                        }
+                        catch (Exception e)
                         {
                             gv_errors_occured++;
                             continue;
@@ -175,16 +201,19 @@ namespace Okazje
                             if (m.Value.Contains("?page=")) continue;
                             if (m.Value.Contains("/c/")) continue;
                             if (m.Value.Contains("https://")) continue;
+                            if (m.Value.Contains("#Opinie")) continue;
 
                             if (m.Value.Contains("www.x-kom.p"))
                             {
                                 val = m.Value.Substring(6, m.Value.Length - 7);
                                 lt_product_urls_from_cat.Rows.Add(val, row[2]);
+                                lv_rows_added++;
                             }
                             else
                             {
                                 val = "www.x-kom.pl/" + m.Value.Substring(7, m.Value.Length - 8);
                                 lt_product_urls_from_cat.Rows.Add(val, row[2]);
+                                lv_rows_added++;
                             }
                             SpecialMethods.additionalLabelStatusBar("Products :" + lt_product_urls_from_cat.Rows.Count.ToString());
                         }
@@ -206,16 +235,16 @@ namespace Okazje
                     " FROM productLinks" +
                     " WHERE productUrl = '" + row[0] + "'");
                 if (lt_actual_products.Rows[0][0].ToString() != "0")
-                {
                     continue;
-                }
 
                 var lv_id = lv_actual_max_id++;
+
                 lt_product_to_insert.Rows.Add(row[1], lv_id);
                 lt_links_to_insert.Rows.Add(lv_id, row[0], "www.x-kom.pl", "0");
 
             }
-
+            dataGridView1.DataSource = lt_product_to_insert;
+            dataGridView2.DataSource = lt_links_to_insert;
             Baza.Insertion("PRODUCT", ll_columns_products, lt_product_to_insert, "");
             Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "");
 
@@ -229,18 +258,14 @@ namespace Okazje
             dataGridView1.DataSource = lt_categories;
             var lt_product = Baza.Selection("SELECT T0.productId, T2.categoryName, T1.productUrl, T1.productDomain, T1.linkId " +
                 "FROM product AS T0 " +
-                "INNER JOIN productLinks AS T1 on T1.productId = T0.productId " +
-                "INNER JOIN categories AS T2 on T0.categoryId = T2.categoryId ");
+                "INNER JOIN productlinks AS T1 on T1.productId = T0.productId " +
+                "INNER JOIN categories AS T2 on T0.categoryId = T2.categoryId LIMIT 100");
             dataGridView2.DataSource = lt_product;
-            //var lt_productDetail = Baza.Selection("SELECT * FROM productDetail");
-            //dataGridView3.DataSource = lt_productDetail;
-            //var lt_productPrices = Baza.Selection("SELECT * FROM productPrices");
-            //dataGridView4.DataSource = lt_productPrices;
         }
 
         private void Button3_Click(object sender, EventArgs e) //Download Product from cat
         {
-            var lt_categories = Baza.Selection("SELECT * FROM categories LIMIT 1");
+            var lt_categories = Baza.Selection("SELECT * FROM categories");
             getProductsFromCategoties(lt_categories);
         }
 
@@ -261,27 +286,36 @@ namespace Okazje
 
         private void Button6_Click(object sender, EventArgs e) // get product details button
         {
-            var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
-                "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId LIMIT 40");
+            var lt_links_to_process = Baza.Selection("SELECT COUNT(*) FROM productLinks");
+            var lv_current = 0;
+            var lv_how_much = int.Parse(lt_links_to_process.Rows[0][0].ToString());
+            var lv_details_inserted = 0;
+            var lv_prices_inserted = 0;
+            do
+            {
+                SpecialMethods.progressBarUpdate(lv_current, lv_how_much, "Item");
 
-            if (lt_productLinks == null) return;
+                var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
+                    "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId WHERE T0.productId = '" + lv_current + "'");
 
-            string[] la_search_parameters_product = new string[] {
+                if (lt_productLinks == null) return;
+
+                string[] la_search_parameters_product = new string[] {
                 "product:price",
                 "product:sale_price",
                 "product:original_price",
                 "product:condition",
                 "og:image"
             };
-            string[] la_seach_parameters_data_product = new string[] {
+                string[] la_seach_parameters_data_product = new string[] {
                 "data-product-name",
                 "data-product-price",
                 "data-product-brand",
                 "data-product-category"
             };
 
-            string[] la_datatable_columns = new string[]
-            {
+                string[] la_datatable_columns = new string[]
+                {
                 //standard
                 "productId",
                 "productUrl",
@@ -296,101 +330,177 @@ namespace Okazje
                 "data-product-price",
                 "data-product-brand",
                 "data-product-category",
-            };
+                };
 
-            var lv_items_to_process = lt_productLinks.Rows.Count;
-            var lv_index = 0;
+                var lv_index = 0;
 
-            var lt_product_line_to_insert = SpecialMethods.addColumns(la_datatable_columns);
+                var lt_product_line_to_insert = SpecialMethods.addColumns(la_datatable_columns);
 
-            foreach (DataRow row in lt_productLinks.Rows)
-            {
-                SpecialMethods.progressBarUpdate(lv_index, lv_items_to_process, "Link");
-                lt_product_line_to_insert.Rows.Add();
-
-                var lv_html = "";
-                using (WebClient client = new WebClient())
+                foreach (DataRow row in lt_productLinks.Rows)
                 {
-                    byte[] htmlData;
-                    try
+                    lt_product_line_to_insert.Rows.Add();
+
+                    var lv_html = "";
+                    using (WebClient client = new WebClient())
                     {
-                        htmlData = client.DownloadData(row["productUrl"].ToString());
+                        byte[] htmlData;
+                        try
+                        {
+                            var temp = "https://" + row["productUrl"].ToString();
+                            htmlData = client.DownloadData(temp);
+                        }
+                        catch (Exception ex)
+                        {
+                            gv_errors_occured++;
+                            MessageBox.Show("Error with downloading Product details occured. Program will return." + "\n" + "Problem occur on: " + row["productUrl"].ToString());
+                            Clipboard.SetText(row["productUrl"].ToString());
+                            MessageBox.Show(ex.Message);
+                            return;
+                        }
                         lv_html = Encoding.UTF8.GetString(htmlData);
-                    }catch (Exception ex)
-                    {
-                        gv_errors_occured++;
-                        continue;
+                        htmlData = null;
                     }
+                    //product:
+                    foreach (var parameter in la_search_parameters_product)
+                    {
+                        var lv_fetched_val = SpecialMethods.getProductParameter(parameter, lv_html);
+                        if (lv_fetched_val == "") continue;
+
+                        Regex regex = new Regex(@"content=""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                        var lt_matches = regex.Matches(lv_fetched_val);
+                        lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
+                    }
+
+                    //data-product:
+                    foreach (var parameter in la_seach_parameters_data_product)
+                    {
+                        var lv_fetched_val = SpecialMethods.getProductParameterV2(parameter, lv_html);
+                        if (lv_fetched_val == "") continue;
+
+                        Regex regex = new Regex(@"=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                        var lt_matches = regex.Matches(lv_fetched_val);
+                        lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
+                    }
+
+                    //Additional parameters of current line from ProductList
+                    lt_product_line_to_insert.Rows[lv_index]["productId"] = row["productId"];
+                    lt_product_line_to_insert.Rows[lv_index]["productUrl"] = row["productUrl"];
+
+                    lv_index++;
                 }
 
-                //product:
-                foreach (var parameter in la_search_parameters_product)
+                // Insert Details if not exist in table
+
+                string[] la_product_details_columns = new string[]
                 {
-                    var lv_fetched_val = SpecialMethods.getProductParameter(parameter, lv_html);
-                    if (lv_fetched_val == "") continue;
-
-                    Regex regex = new Regex(@"content=""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var lt_matches = regex.Matches(lv_fetched_val);
-                    lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
-                }
-
-                //data-product:
-                foreach (var parameter in la_seach_parameters_data_product)
-                {
-                    var lv_fetched_val = SpecialMethods.getProductParameterV2(parameter, lv_html);
-                    if (lv_fetched_val == "") continue;
-
-                    Regex regex = new Regex(@"=\""(.*?)\""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var lt_matches = regex.Matches(lv_fetched_val);
-                    lt_product_line_to_insert.Rows[lv_index][parameter] = lt_matches[0].Groups[1];
-                }
-
-                //Additional parameters of current line from ProductList
-                lt_product_line_to_insert.Rows[lv_index]["productId"] = row["productId"];
-                lt_product_line_to_insert.Rows[lv_index]["productUrl"] = row["productUrl"];
-
-                lv_index++;
-            }
-
-            // Insert Details if not exist in table
-            lv_index = 0;
-            lv_items_to_process = lt_product_line_to_insert.Rows.Count;
-
-            string[] la_product_details_columns = new string[]
-            {
                 "productId",
                 "productFullName",
                 "productParameters",
                 "productModel",
                 "productManufacturer",
                 "productImageUrl"
-            };
-            var lt_product_details = SpecialMethods.addColumns(la_product_details_columns);
+                };
+                string[] la_product_prices_columns = new string[]
+                {
+                "productId",
+                "productPriceNow",
+                "productDomain",
+                "productPriceDate",
+                "productPricePrevious",
+                "productDiscounted",
+                "productDiscountRate",
+                "productOutlet"
+                    //"linkId"
+                };
 
-            foreach (DataRow line in lt_product_line_to_insert.Rows)
-            {
-                SpecialMethods.progressBarUpdate(lv_index, lv_items_to_process, "Product Detail");
-                lv_index++;
+                var lt_product_details = SpecialMethods.addColumns(la_product_details_columns);
 
-                var ls_current_prod_details = Baza.Selection(@"SELECT * FROM productdetail where productId = '"+ line[0] + "'");
-                if (ls_current_prod_details.Rows.Count > 0) continue;
+                //Product details
+                foreach (DataRow line in lt_product_line_to_insert.Rows)
+                {
+                    var ls_current_prod_details = Baza.Selection(@"SELECT * FROM productdetail where productId = '" + line[0] + "'");
+                    if (ls_current_prod_details.Rows.Count > 0) continue;
 
-                lt_product_details.Rows.Add(line["productId"],
-                    line["data-product-name"],
-                    line["data-product-category"].ToString().Replace("&quot;", "cale"),
-                    line["data-product-name"].ToString().Split(' ')[1],
-                    line["data-product-brand"],
-                    line["og:image"]);
-            }
+                    lt_product_details.Rows.Add(line["productId"],
+                        line["data-product-name"],
+                        line["data-product-category"].ToString().Replace("&quot;", "cale"),
+                        line["data-product-name"].ToString().Split(' ')[1],
+                        line["data-product-brand"],
+                        line["og:image"]);
+                }
 
-            if (lt_productLinks.Rows.Count > 0)
-            Baza.Insertion("productdetail", la_product_details_columns, lt_product_details, "");
+                if (lt_product_details.Rows.Count > 0)
+                {
+                    Baza.Insertion("productdetail", la_product_details_columns, lt_product_details, "");
+                    lv_details_inserted++;
+                }
 
-            // End of everything
-            dataGridView2.DataSource = lt_product_details;
+                // Prices
+                var lt_product_prices = SpecialMethods.addColumns(la_product_prices_columns);
+
+                foreach (DataRow line in lt_product_line_to_insert.Rows)
+                {
+                    float lv_discount = 0;
+
+                    if (line["product:original_price"].ToString() != "")
+                    {
+                        lv_discount = ((float.Parse(line["product:price"].ToString().Replace('.', ',')) * 100) / float.Parse(line["product:original_price"].ToString().Replace('.', ',')));
+                        lv_discount = 100 - lv_discount;
+                    }
+
+                    float lv_original_price = 0;
+                    if (line["product:original_price"].ToString() != "")
+                        lv_original_price = float.Parse(line["product:original_price"].ToString().Replace('.', ','));
+
+                    var ls_product_prev_price = Baza.Selection("SELECT productPricePrevious FROM productprices WHERE productId = '" + line[0] + "'");
+                    var ls_product_max_date = Baza.Selection("SELECT MAX(productPriceDate) FROM productprices WHERE productId = '" + line[0] + "'");
+
+                    if (ls_product_prev_price.Rows.Count > 0)
+                    { // exist
+                        if (ls_product_max_date.Rows[0][0].ToString() != DateTime.UtcNow.ToString("dd.MM.yyyy 00:00:00"))
+                            lt_product_prices.Rows.Add(line["productId"],
+                                float.Parse(line["product:price"].ToString().Replace(".", ",")),
+                                "www.x-kom.pl",//product domain,
+                                DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
+                                float.Parse(ls_product_prev_price.Rows[0]["productPricePrevious"].ToString().Replace(".", ",")),
+                                lv_discount != 0 ? 1 : 0,
+                                lv_discount.ToString().Replace(".", ","),
+                                line["product:condition"]);
+                    }
+                    else
+                    { // dont exist
+                        lt_product_prices.Rows.Add(line["productId"],
+                            float.Parse(line["product:price"].ToString().Replace(".", ",")),
+                            "www.x-kom.pl",//product domain,
+                            DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
+                            lv_original_price,
+                            lv_discount != 0 ? 1 : 0,
+                            lv_discount.ToString().Replace(".", ","),
+                            line["product:condition"]);
+                    }
+                }
+                //    "productId",
+                //    "productPriceNow",
+                //    "productDomain",
+                //    "productPriceDate",
+                //    "productPricePrevious",
+                //    "productDiscounted",
+                //    "productDiscountRate",
+                //    "productOutlet"
+                if (lt_product_prices.Rows.Count > 0)
+                {
+                    Baza.Insertion("productprices", la_product_prices_columns, lt_product_prices, "");
+                    lv_prices_inserted++;
+                }
+
+                // End of everything
+                clearVariables();
+                lv_current++;
+
+            } while (lv_current < lv_how_much);
             SpecialMethods.progressBarDone();
             SpecialMethods.showErrors(gv_errors_occured);
-            clearVariables();
+            MessageBox.Show("Product details inserted " + lv_details_inserted + ". Prices inserted " + lv_prices_inserted + ".");
         }
 
         private void Form1_Load(object sender, EventArgs e)

@@ -14,7 +14,7 @@ namespace Okazje.Klasy
     {
         //static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Workspace\Okazje\Okazje\Baza\Baza.mdf;Integrated Security=True");
 
-        static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;";
+        static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True";
         static MySqlConnection con = new MySqlConnection(connectionString);
 
         static MySqlCommand cmd = new MySqlCommand();
@@ -40,7 +40,6 @@ namespace Okazje.Klasy
             DataTable rt_values = new DataTable();
             var lv_database_comm = new MySqlCommand(iv_command, con);
             MySqlDataAdapter da = new MySqlDataAdapter(lv_database_comm);
-
             da.Fill(rt_values);
 
             con.Close();

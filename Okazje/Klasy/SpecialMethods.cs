@@ -93,10 +93,11 @@ namespace Okazje.Klasy
         }
         public void progressBarUpdate(int iv_current_index,int iv_max_index, string iv_item_name)
         {
+            iv_current_index++;
             lo_ToolStripProgressBar.Visible = true;
             lo_ToolStripLabel.Visible = true;
 
-            float lv_current_percentage = ((iv_current_index+1) * 100) / iv_max_index;
+            float lv_current_percentage = ((iv_current_index) * 100) / iv_max_index;
             lo_ToolStripProgressBar.Value = int.Parse(lv_current_percentage.ToString());
 
             lo_ToolStripLabel.Text = "(" + iv_current_index + " of " + iv_max_index + ") " + iv_item_name + "'s";

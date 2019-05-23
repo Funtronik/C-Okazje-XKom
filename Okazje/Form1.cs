@@ -510,7 +510,7 @@ namespace Okazje
 
                 // End of everything
                 clearVariables();
-                lv_current++;
+                //lv_current++;
 
             } while (lv_current < lv_how_much);
             SpecialMethods.progressBarDone();
@@ -541,7 +541,6 @@ namespace Okazje
                 "data-product-brand",
                 "data-product-category"
             };
-
             string[] la_datatable_columns = new string[]
             {
                 //standard

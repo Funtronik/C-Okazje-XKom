@@ -39,3 +39,7 @@ C:\Workspace\Okazje\Okazje\bin\Debug\MySql.Data.dll
 C:\Workspace\Okazje\Okazje\bin\Debug\Google.Protobuf.xml
 C:\Workspace\Okazje\Okazje\bin\Debug\MySql.Data.xml
 C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.csproj.CopyComplete
+C:\Workspace\Okazje\Okazje\bin\Debug\Okazje.exe.manifest
+C:\Workspace\Okazje\Okazje\bin\Debug\Okazje.application
+C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.exe.manifest
+C:\Workspace\Okazje\Okazje\obj\Debug\Okazje.application

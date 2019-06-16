@@ -117,7 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <data name="mailBody" xml:space="preserve">
+    <value>&lt;p style="text-align: center;"&gt;&lt;strong&gt;&lt;span style="color: #339966;"&gt;$PRODUCT_NAME}&lt;/span&gt;&lt;/strong&gt;&amp;nbsp;&lt;strong&gt;$PRODUCT_PRICE}&lt;/strong&gt;&lt;/p&gt;
+&lt;table style="margin-left: auto; margin-right: auto;"&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Id produktu&lt;/td&gt;
+&lt;td style="text-align: center;"&gt;$product_id}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Poprzednia cena&lt;/td&gt;
+&lt;td style="text-align: center;"&gt;$prev_price}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Przecena&lt;/td&gt;
+&lt;td style="text-align: center;"&gt;$discount}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Sprzedano&lt;/td&gt;
+&lt;td style="text-align: center;"&gt;$sold}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing">
     <value>17, 17</value>
-  </metadata>
+  </data>
 </root>

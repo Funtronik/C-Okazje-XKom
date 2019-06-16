@@ -65,12 +65,26 @@ namespace Okazje.Klasy
         {
             try
             { 
-                //  @"product:(.*?)\/>"
                 Regex rx = new Regex(iv_parameter + @"(.*?)\/>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 MatchCollection matches = rx.Matches(iv_html_code);
                 foreach (Match m in matches)
                 {
                     return m.Value.ToString();
+                }
+                return "";
+            }
+            catch (Exception ex) { return null; }
+        }
+        public string getDetailForNotification(string iv_parameter, string iv_html_code) // "product:"
+        {
+            try
+            {
+                //  @"product:(.*?)\/>"
+                Regex rx = new Regex(iv_parameter.Replace('&','"'), RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                MatchCollection matches = rx.Matches(iv_html_code);
+                foreach (Match m in matches)
+                {
+                    return m.Groups[1].Value.ToString();
                 }
                 return "";
             }

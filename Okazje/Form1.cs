@@ -12,6 +12,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.Net.Mail;
 
 namespace Okazje
 {
@@ -19,9 +20,12 @@ namespace Okazje
     {
         Okazje.Klasy.OperacjeBazyDanych Baza = new Klasy.OperacjeBazyDanych();
         Okazje.Klasy.SpecialMethods SpecialMethods = new Klasy.SpecialMethods();
+        Okazje.Klasy.EmailNotification EmailNotification = new Klasy.EmailNotification();
+
         string command;
         int gv_errors_occured = 0;
         int gv_num_of_threads = 100;
+        List<string> gl_errors_email = new List<string>();
 
         public Form1()
         {
@@ -33,6 +37,8 @@ namespace Okazje
             SpecialMethods.lo_ToolStripLabelErrors = toolStripStatusLabel3;
             gv_num_of_threads = int.Parse(TB_Number_Of_Threads.Text.ToString());
             Baza.initializeClass(gv_num_of_threads);
+            EmailNotification.initializeClass();
+            B_SMS_Click(null,null);
         }
         private void clearVariables()
         {
@@ -292,6 +298,7 @@ namespace Okazje
         {
             gv_num_of_threads = int.Parse(TB_Number_Of_Threads.Text.ToString());
             Baza.initializeClass(gv_num_of_threads);
+            gl_errors_email.Clear();
             var lt_links_to_process = Baza.Selection("SELECT COUNT(*) FROM productLinks");
             var lv_current = 0;
             var lv_how_much = int.Parse(lt_links_to_process.Rows[0][0].ToString());
@@ -305,7 +312,7 @@ namespace Okazje
                 for (int i = 0; i < gv_num_of_threads; i++)
                 {
                     la_threads[i] = new Thread(() => getProductDetails(lv_current));
-                    la_threads[i].Name = ("Thread"+i.ToString());
+                    la_threads[i].Name = ("Thread" + i.ToString());
                     la_threads[i].Start();
                     SpecialMethods.progressBarUpdate(lv_current, lv_how_much, "Item");
                     lv_current++;
@@ -317,9 +324,13 @@ namespace Okazje
 
                 // End of everything
                 clearVariables();
-                //lv_current++;
 
             } while (lv_current < lv_how_much);
+            if (gl_errors_email.Count > 0)
+            {
+                EmailNotification.sendErrorOccuredDownloadDetails(gl_errors_email);
+                gl_errors_email.Clear();
+            }
             SpecialMethods.progressBarDone();
             SpecialMethods.showErrors(gv_errors_occured);
             MessageBox.Show("Product details inserted " + lv_details_inserted + ". Prices inserted " + lv_prices_inserted + ".");
@@ -372,28 +383,35 @@ namespace Okazje
 
             foreach (DataRow row in lt_productLinks.Rows)
             {
-                lt_product_line_to_insert.Rows.Add();
-
                 var lv_html = "";
                 using (WebClient client = new WebClient())
                 {
-                    byte[] htmlData;
-                    try
+                    byte[] htmlData = null;
+                    for (int i = 0; i < 3; i++) // try 3 times
                     {
-                        var temp = "https://" + row["productUrl"].ToString();
-                        htmlData = client.DownloadData(temp);
+                        try
+                        {
+                            var temp = "https://" + row["productUrl"].ToString();
+                            htmlData = client.DownloadData(temp);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            Thread.Sleep(500);
+                        }
                     }
-                    catch (Exception ex)
+                    if (htmlData == null)// error occured. No data was downloaded
                     {
-                        gv_errors_occured++;
-                        MessageBox.Show("Error with downloading Product details occured. Program will return." + "\n" + "Problem occur on: " + row["productUrl"].ToString());
-                        Clipboard.SetText(row["productUrl"].ToString());
-                        MessageBox.Show(ex.Message);
+                        gl_errors_email.Add("https://" + row["productUrl"].ToString());
                         return;
                     }
-                    lv_html = Encoding.UTF8.GetString(htmlData);
+                    else
+                    {
+                        lv_html = Encoding.UTF8.GetString(htmlData);
+                    }
                     htmlData = null;
                 }
+                lt_product_line_to_insert.Rows.Add();
                 //product:
                 foreach (var parameter in la_search_parameters_product)
                 {
@@ -490,14 +508,14 @@ namespace Okazje
 
                 if (ls_product_prev_price.Rows.Count > 0)
                 { // exist
-                        lt_product_prices.Rows.Add(line["productId"],
-                            float.Parse(line["product:price"].ToString().Replace(".", ",")),
-                            "www.x-kom.pl",//product domain,
-                            DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
-                            float.Parse(ls_product_prev_price.Rows[0]["productPricePrevious"].ToString().Replace(".", ",")),
-                            lv_discount != 0 ? 1 : 0,
-                            lv_discount.ToString().Replace(".", ","),
-                            line["product:condition"]);
+                    lt_product_prices.Rows.Add(line["productId"],
+                        float.Parse(line["product:price"].ToString().Replace(".", ",")),
+                        "www.x-kom.pl",//product domain,
+                        DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
+                        float.Parse(ls_product_prev_price.Rows[0]["productPricePrevious"].ToString().Replace(".", ",")),
+                        lv_discount != 0 ? 1 : 0,
+                        lv_discount.ToString().Replace(".", ","),
+                        line["product:condition"]);
                 }
                 else
                 { // dont exist
@@ -531,6 +549,26 @@ namespace Okazje
             toolStripProgressBar1.Visible = false;
             toolStripStatusLabel1.Visible = false;
             toolStripStatusLabel2.Visible = false;
+        }
+
+        private void B_SMS_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Okazje.Klasy.Scheduler.IntervalInDays(9, 1, 1, () => { EmailNotification.specialOfferMailNotification("alto"); });
+                Okazje.Klasy.Scheduler.IntervalInDays(10, 1, 1, () => { EmailNotification.specialOfferMailNotification("xkom"); });
+                Okazje.Klasy.Scheduler.IntervalInDays(21, 1, 1, () => { EmailNotification.specialOfferMailNotification("alto"); });
+                Okazje.Klasy.Scheduler.IntervalInDays(22, 1, 1, () => { EmailNotification.specialOfferMailNotification("xkom"); });
+                PB_SMS.Image = Okazje.Properties.Resources.on;
+                B_SMS.Text = "Enabled";
+                PB_SMS.Refresh();
+            }
+            catch (Exception ex)
+            {
+                PB_SMS.Image = Okazje.Properties.Resources.off;
+                B_SMS.Text = "Disabled";
+                PB_SMS.Refresh();
+            }
         }
     }
 }

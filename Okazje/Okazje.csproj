@@ -12,20 +12,22 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateEnabled>true</UpdateEnabled>
     <UpdateMode>Foreground</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <UpdateUrl>http://localhost/Okazje/</UpdateUrl>
+    <ApplicationRevision>1</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -46,6 +48,18 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>E9B31868A422F1E9269A8E61F8A3D515A6F84E24</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>Okazje_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
@@ -74,6 +88,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Baza\BazaDataSet.cs">
+      <DependentUpon>BazaDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Baza\BazaDataSet.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -85,8 +102,13 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Klasy\EmailNotification.cs" />
     <Compile Include="Klasy\OperacjeBazyDanych.cs" />
+    <Compile Include="Klasy\ScheduledServices.cs" />
+    <Compile Include="Klasy\Scheduler.cs" />
+    <Compile Include="Klasy\SearchParametersInSourceView.cs" />
     <Compile Include="Klasy\SpecialMethods.cs" />
+    <Compile Include="MailDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -100,6 +122,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Baza\BazaDataSet.xsc">
       <DependentUpon>BazaDataSet.xsd</DependentUpon>
@@ -112,6 +135,7 @@
     <None Include="Baza\BazaDataSet.xss">
       <DependentUpon>BazaDataSet.xsd</DependentUpon>
     </None>
+    <None Include="Okazje_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -134,9 +158,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>Baza.mdf</DependentUpon>
     </Content>
-    <Content Include="Images\error_icon.jpg">
+    <Content Include="Images\NotificationStatus\off.png" />
+    <Content Include="Images\NotificationStatus\on.png" />
+    <Content Include="Images\StatusBar\error_icon.jpg">
       <CustomToolNamespace>Okazje.Images</CustomToolNamespace>
     </Content>
+    <None Include="Resources\Images_NotificationStatus_off.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -150,5 +177,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

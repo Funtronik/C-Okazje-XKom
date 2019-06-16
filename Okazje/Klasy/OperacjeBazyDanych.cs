@@ -13,8 +13,6 @@ namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        //static SqlConnection con = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Workspace\Okazje\Okazje\Baza\Baza.mdf;Integrated Security=True");
-
         static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True";
         static int gv_thread_id = 0;
         static int gv_num_of_threads = 100;
@@ -53,7 +51,6 @@ namespace Okazje.Klasy
             init();
             var lv_success = false;
             var lv_columns = "";
-            var lv_querry = "";
 
             //preparing columns
             foreach (var row in ia_columns)
@@ -73,7 +70,7 @@ namespace Okazje.Klasy
                         lv_values += ",'" + data[i].ToString() + "'";
                     }
                     lv_values = lv_values.Substring(1, lv_values.Length - 1);
-                    lv_querry = "INSERT INTO " + iv_table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + iv_additionalOptions.ToUpper();
+                    var lv_querry = "INSERT INTO " + iv_table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + iv_additionalOptions.ToUpper();
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandText = (lv_querry);
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].ExecuteNonQuery();
                     la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();

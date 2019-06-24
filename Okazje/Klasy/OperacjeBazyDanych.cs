@@ -13,7 +13,7 @@ namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True";
+        static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True;Connection Timeout=90";
         static int gv_thread_id = 0;
         static int gv_num_of_threads = 100;
         static MySqlConnection[] la_MySqlConnections = new MySqlConnection[gv_num_of_threads];
@@ -40,6 +40,7 @@ namespace Okazje.Klasy
             MySqlCommand lv_database_comm;
 
             lv_database_comm = new MySqlCommand(iv_command, la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]]);
+            lv_database_comm.CommandTimeout = 90;
             la_MySqlDataAdapters[ld_thread_ids[Thread.CurrentThread.Name]] = new MySqlDataAdapter(lv_database_comm);
             la_MySqlDataAdapters[ld_thread_ids[Thread.CurrentThread.Name]].Fill(rt_values);
             la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
@@ -72,6 +73,7 @@ namespace Okazje.Klasy
                     lv_values = lv_values.Substring(1, lv_values.Length - 1);
                     var lv_querry = "INSERT INTO " + iv_table + " (" + lv_columns + ") VALUES (" + lv_values + ") " + iv_additionalOptions.ToUpper();
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandText = (lv_querry);
+                    la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandTimeout = 90;
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].ExecuteNonQuery();
                     la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
                 }
@@ -83,6 +85,13 @@ namespace Okazje.Klasy
                 return false;
             }
             return lv_success;
+        }
+        public bool Deletion(string iv_command)
+        {
+            init();
+            la_MySqlCommands[gv_thread_id].CommandText = (iv_command);
+            la_MySqlCommands[gv_thread_id].ExecuteNonQuery();
+            return true;
         }
         public void WipeCategories()
         {

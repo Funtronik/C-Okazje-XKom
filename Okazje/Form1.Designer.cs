@@ -30,39 +30,29 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.PB_SMS = new System.Windows.Forms.PictureBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.B_SMS = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.button6 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.textBox2 = new System.Windows.Forms.TextBox();
             this.TB_Number_Of_Threads = new System.Windows.Forms.TextBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.dataGridView2 = new System.Windows.Forms.DataGridView();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.B_SMS = new System.Windows.Forms.Button();
-            this.label4 = new System.Windows.Forms.Label();
-            this.PB_SMS = new System.Windows.Forms.PictureBox();
+            this.button4 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PB_SMS)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.tabPage2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
-            this.tabPage3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PB_SMS)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -77,6 +67,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.button4);
             this.panel1.Controls.Add(this.PB_SMS);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.B_SMS);
@@ -84,7 +75,6 @@
             this.panel1.Controls.Add(this.button6);
             this.panel1.Controls.Add(this.button3);
             this.panel1.Controls.Add(this.button2);
-            this.panel1.Controls.Add(this.textBox2);
             this.panel1.Controls.Add(this.TB_Number_Of_Threads);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
@@ -92,6 +82,36 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(184, 661);
             this.panel1.TabIndex = 1;
+            // 
+            // PB_SMS
+            // 
+            this.PB_SMS.Image = global::Okazje.Properties.Resources.off;
+            this.PB_SMS.InitialImage = global::Okazje.Properties.Resources.off;
+            this.PB_SMS.Location = new System.Drawing.Point(147, 12);
+            this.PB_SMS.Name = "PB_SMS";
+            this.PB_SMS.Size = new System.Drawing.Size(20, 20);
+            this.PB_SMS.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PB_SMS.TabIndex = 12;
+            this.PB_SMS.TabStop = false;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(93, 17);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(48, 13);
+            this.label4.TabIndex = 11;
+            this.label4.Text = "Disabled";
+            // 
+            // B_SMS
+            // 
+            this.B_SMS.Location = new System.Drawing.Point(12, 12);
+            this.B_SMS.Name = "B_SMS";
+            this.B_SMS.Size = new System.Drawing.Size(75, 23);
+            this.B_SMS.TabIndex = 10;
+            this.B_SMS.Text = "SMS";
+            this.B_SMS.UseVisualStyleBackColor = true;
+            this.B_SMS.Click += new System.EventHandler(this.B_SMS_Click);
             // 
             // label3
             // 
@@ -132,14 +152,6 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
             // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(12, 232);
-            this.textBox2.Multiline = true;
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(166, 371);
-            this.textBox2.TabIndex = 3;
-            // 
             // TB_Number_Of_Threads
             // 
             this.TB_Number_Of_Threads.Location = new System.Drawing.Point(90, 206);
@@ -152,8 +164,6 @@
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(184, 0);
             this.tabControl1.Name = "tabControl1";
@@ -180,72 +190,6 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.Size = new System.Drawing.Size(1186, 629);
             this.dataGridView1.TabIndex = 0;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.dataGridView2);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1192, 635);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Products";
-            this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // dataGridView2
-            // 
-            this.dataGridView2.AllowUserToAddRows = false;
-            this.dataGridView2.AllowUserToDeleteRows = false;
-            this.dataGridView2.AllowUserToResizeColumns = false;
-            this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView2.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.dataGridView2.Location = new System.Drawing.Point(3, 3);
-            this.dataGridView2.Name = "dataGridView2";
-            this.dataGridView2.ReadOnly = true;
-            this.dataGridView2.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView2.Size = new System.Drawing.Size(1186, 629);
-            this.dataGridView2.TabIndex = 0;
-            this.dataGridView2.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.DataGridView2_RowHeaderMouseDoubleClick);
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.label2);
-            this.tabPage3.Controls.Add(this.label1);
-            this.tabPage3.Controls.Add(this.pictureBox1);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(1192, 635);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "ProductDetails";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(223, 53);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(27, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Link";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(223, 24);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(40, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Nazwa";
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Location = new System.Drawing.Point(17, 19);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(200, 200);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
             // 
             // statusStrip1
             // 
@@ -285,35 +229,15 @@
             this.toolStripStatusLabel3.Text = "toolStripStatusLabel3";
             this.toolStripStatusLabel3.Visible = false;
             // 
-            // B_SMS
+            // button4
             // 
-            this.B_SMS.Location = new System.Drawing.Point(12, 12);
-            this.B_SMS.Name = "B_SMS";
-            this.B_SMS.Size = new System.Drawing.Size(75, 23);
-            this.B_SMS.TabIndex = 10;
-            this.B_SMS.Text = "SMS";
-            this.B_SMS.UseVisualStyleBackColor = true;
-            this.B_SMS.Click += new System.EventHandler(this.B_SMS_Click);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(93, 17);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(48, 13);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "Disabled";
-            // 
-            // PB_SMS
-            // 
-            this.PB_SMS.Image = global::Okazje.Properties.Resources.off;
-            this.PB_SMS.InitialImage = global::Okazje.Properties.Resources.off;
-            this.PB_SMS.Location = new System.Drawing.Point(147, 12);
-            this.PB_SMS.Name = "PB_SMS";
-            this.PB_SMS.Size = new System.Drawing.Size(20, 20);
-            this.PB_SMS.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PB_SMS.TabIndex = 12;
-            this.PB_SMS.TabStop = false;
+            this.button4.Location = new System.Drawing.Point(12, 271);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(166, 23);
+            this.button4.TabIndex = 13;
+            this.button4.Text = "Get Price Duplicates";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.Button4_Click_1);
             // 
             // Form1
             // 
@@ -328,17 +252,12 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PB_SMS)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.tabPage2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
-            this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PB_SMS)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -349,18 +268,11 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TextBox TB_Number_Of_Threads;
-        private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.DataGridView dataGridView2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
@@ -371,6 +283,7 @@
         private System.Windows.Forms.PictureBox PB_SMS;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button B_SMS;
+        private System.Windows.Forms.Button button4;
     }
 }
 

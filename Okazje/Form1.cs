@@ -254,7 +254,6 @@ namespace Okazje
 
             }
             dataGridView1.DataSource = lt_product_to_insert;
-            dataGridView2.DataSource = lt_links_to_insert;
             Baza.Insertion("PRODUCT", ll_columns_products, lt_product_to_insert, "");
             Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "");
 
@@ -270,7 +269,6 @@ namespace Okazje
                 "FROM product AS T0 " +
                 "INNER JOIN productlinks AS T1 on T1.productId = T0.productId " +
                 "INNER JOIN categories AS T2 on T0.categoryId = T2.categoryId LIMIT 100");
-            dataGridView2.DataSource = lt_product;
         }
 
         private void Button3_Click(object sender, EventArgs e) //Download Product from cat
@@ -296,22 +294,64 @@ namespace Okazje
 
         private void Button6_Click(object sender, EventArgs e) // get product details button
         {
+            //gv_num_of_threads = int.Parse(TB_Number_Of_Threads.Text.ToString());
+            //Baza.initializeClass(gv_num_of_threads);
+            //gl_errors_email.Clear();
+            //var lt_links_to_process = Baza.Selection("SELECT COUNT(*) FROM productLinks");
+            //var lv_current = 0;
+            //var lv_how_much = int.Parse(lt_links_to_process.Rows[0][0].ToString());
+            //var lv_details_inserted = 0;
+            //var lv_prices_inserted = 0;
+
+            //var la_threads = new Thread[gv_num_of_threads];
+
+            //do
+            //{
+            //    for (int i = 0; i < gv_num_of_threads; i++)
+            //    {
+            //        la_threads[i] = new Thread(() => getProductDetails(lv_current));
+            //        la_threads[i].Name = ("Thread" + i.ToString());
+            //        la_threads[i].Start();
+            //        SpecialMethods.progressBarUpdate(lv_current, lv_how_much, "Item");
+            //        lv_current++;
+            //    }
+            //    for (int i = 0; i < gv_num_of_threads; i++)
+            //    {
+            //        la_threads[i].Join();
+            //    }
+
+            //    // End of everything
+            //    clearVariables();
+
+            //} while (lv_current < lv_how_much);
+            //if (gl_errors_email.Count > 0)
+            //{
+            //    EmailNotification.sendErrorOccuredDownloadDetails(gl_errors_email);
+            //    gl_errors_email.Clear();
+            //}
+            //SpecialMethods.progressBarDone();
+            //SpecialMethods.showErrors(gv_errors_occured);
+            //MessageBox.Show("Product details inserted " + lv_details_inserted + ". Prices inserted " + lv_prices_inserted + ".");
+            
+            
+            //SELECT T0.productId FROM product AS T0 LEFT JOIN productprices as T1 on T1.productId = T0.productId WHERE T1.productPriceDate IS NULL;
             gv_num_of_threads = int.Parse(TB_Number_Of_Threads.Text.ToString());
             Baza.initializeClass(gv_num_of_threads);
             gl_errors_email.Clear();
-            var lt_links_to_process = Baza.Selection("SELECT COUNT(*) FROM productLinks");
             var lv_current = 0;
-            var lv_how_much = int.Parse(lt_links_to_process.Rows[0][0].ToString());
+            
             var lv_details_inserted = 0;
             var lv_prices_inserted = 0;
 
             var la_threads = new Thread[gv_num_of_threads];
+            var lt_product_indexes = Baza.Selection("SELECT p.productId FROM product p WHERE NOT EXISTS (SELECT * FROM productPrices r WHERE p.productId = r.productId AND r.productPriceDate = CURDATE())");
+            var lv_how_much = lt_product_indexes.Rows.Count;
 
             do
             {
                 for (int i = 0; i < gv_num_of_threads; i++)
                 {
-                    la_threads[i] = new Thread(() => getProductDetails(lv_current));
+                    la_threads[i] = new Thread(() => getProductDetails(int.Parse(lt_product_indexes.Rows[lv_current][0].ToString())));
                     la_threads[i].Name = ("Thread" + i.ToString());
                     la_threads[i].Start();
                     SpecialMethods.progressBarUpdate(lv_current, lv_how_much, "Item");
@@ -344,7 +384,7 @@ namespace Okazje
             var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
                      "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId WHERE T0.productId = '" + iv_current + "'");
 
-            if (lt_productLinks == null) return;
+            if (lt_productLinks.Rows.Count == 0) return;
 
             string[] la_search_parameters_product = new string[] {
                 "product:price",
@@ -508,25 +548,26 @@ namespace Okazje
 
                 if (ls_product_prev_price.Rows.Count > 0)
                 { // exist
-                    lt_product_prices.Rows.Add(line["productId"],
-                        float.Parse(line["product:price"].ToString().Replace(".", ",")),
-                        "www.x-kom.pl",//product domain,
-                        DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
-                        float.Parse(ls_product_prev_price.Rows[0]["productPricePrevious"].ToString().Replace(".", ",")),
-                        lv_discount != 0 ? 1 : 0,
-                        lv_discount.ToString().Replace(".", ","),
-                        line["product:condition"]);
+                    lt_product_prices.Rows.Add(line["productId"],                                                           //    "productId",
+                        float.Parse(line["product:price"].ToString().Replace(".", ",")),                                    //    "productPriceNow",
+                        "www.x-kom.pl",//product domain,                                                                    //    "product domain",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),                                                     //    "productPriceDate",
+                        float.Parse(ls_product_prev_price.Rows[0]["productPricePrevious"].ToString().Replace(".", ",")),    //    "productPricePrevious",
+                        lv_discount != 0 ? 1 : 0,                                                                           //    "productDiscounted",
+                        lv_discount.ToString().Replace(".", ","),                                                           //    "productDiscountRate",
+                        "0");                                                                         //    "productOutlet"
                 }
                 else
                 { // dont exist
-                    lt_product_prices.Rows.Add(line["productId"],
-                        float.Parse(line["product:price"].ToString().Replace(".", ",")),
-                        "www.x-kom.pl",//product domain,
-                        DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),
-                        lv_original_price,
-                        lv_discount != 0 ? 1 : 0,
-                        lv_discount.ToString().Replace(".", ","),
-                        line["product:condition"]);
+                    lt_product_prices.Rows.Add(
+                        line[0],                                                            //    "productId",
+                        float.Parse(line[2].ToString().Replace(".", ",")),                  //    "productPriceNow",
+                        "www.x-kom.pl",                                                     //    "product domain",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd H:mm:ss"),                     //    "productPriceDate",
+                        lv_original_price,                                                  //    "productPricePrevious",
+                        lv_discount != 0 ? 1 : 0,                                           //    "productDiscounted",
+                        lv_discount.ToString().Replace(".", ","),                           //    "productDiscountRate",
+                        "0");                                                               //    "productOutlet"
                 }
             }
             //    "productId",
@@ -539,7 +580,7 @@ namespace Okazje
             //    "productOutlet"
             if (lt_product_prices.Rows.Count > 0)
             {
-                Baza.Insertion("productprices", la_product_prices_columns, lt_product_prices, "");
+                var lv_success = Baza.Insertion("productprices", la_product_prices_columns, lt_product_prices, "");
                 //lv_prices_inserted++;
             }
         }
@@ -569,6 +610,36 @@ namespace Okazje
                 B_SMS.Text = "Disabled";
                 PB_SMS.Refresh();
             }
+        }
+
+        private void Button4_Click_1(object sender, EventArgs e)
+        {
+            var lv_first_date = DateTime.Parse(Baza.Selection("SELECT MIN(productPriceDate) FROM productprices").Rows[0][0].ToString());
+            var lv_days_to_go = (DateTime.Now- lv_first_date).TotalDays;
+            var lv_rows_affected = 0;
+            for (int i = 0; i < lv_days_to_go; i++)
+            {
+                var lv_date_fetch = lv_first_date.AddDays(i).ToString("yyyy-MM-dd");
+                var lv_select = @"SELECT productId, count(productPriceDate) c FROM productprices WHERE productPriceDate = '" + lv_date_fetch.ToString() + @"' GROUP BY productId HAVING c > 1;";
+                var lt_rows_to_delete = Baza.Selection(lv_select);
+
+                if (lt_rows_to_delete.Rows.Count == 0) continue;
+                var lv_items = "";
+                foreach (DataRow item in lt_rows_to_delete.Rows)
+                {
+                    lv_rows_affected++;
+                    lv_items = lv_items + "'"+ item[0] + "',";
+                }
+                lv_items = "(" + lv_items.Substring(0, lv_items.Length - 1).ToString() + ")";
+
+                var lv_success = Baza.Deletion(@"DELETE FROM productprices WHERE productId IN " + lv_items + @" AND productPriceDate = '" + lv_date_fetch + @"'");
+                if (!lv_success)
+                {
+                    MessageBox.Show("Error during Duplications Deletion");
+                    return;
+                }
+            }
+            MessageBox.Show("Deleted duplicated rows : " + lv_rows_affected.ToString());
         }
     }
 }

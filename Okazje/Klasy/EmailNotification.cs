@@ -85,7 +85,6 @@ namespace Okazje.Klasy
                 lv_mail_body = lv_mail_body.Replace(@"$discount$", lt_special_offer.Rows[0]["discount"].ToString());
                 lv_mail_body = lv_mail_body.Replace(@"$sold$", lv_sold);
 
-
                 setEmail(lt_special_offer.Rows[0][0].ToString(), lv_mail_body, gt_emails);
 
                 var la_insetion_notification = new string[]

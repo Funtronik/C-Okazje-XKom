@@ -8,12 +8,13 @@ using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using System.Windows.Forms;
 using System.Threading;
+using System.Net.NetworkInformation;
 
 namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        static string connectionString = "SERVER=localhost" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True;Connection Timeout=90";
+        static string connectionString = "SERVER=&&&&" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True;Connection Timeout=90";
         static int gv_thread_id = 0;
         static int gv_num_of_threads = 100;
         static MySqlConnection[] la_MySqlConnections = new MySqlConnection[gv_num_of_threads];
@@ -118,6 +119,9 @@ namespace Okazje.Klasy
         }
         public void initializeClass(int iv_num_of_threads)
         {
+
+            connectionString.Replace("&&&&", getMySQLServerAdress());
+
             ld_thread_ids.Clear();
             gv_num_of_threads = iv_num_of_threads;
             for (int i = 0; i < gv_num_of_threads; i++)
@@ -136,6 +140,17 @@ namespace Okazje.Klasy
         {
             if (Thread.CurrentThread.Name == null)
                 Thread.CurrentThread.Name = "Thread0";
+        }
+        private string getMySQLServerAdress()
+        {
+            Ping pingSender = new Ping();
+            string data = "TEST";
+            byte[] buffer = Encoding.ASCII.GetBytes(data);
+            int timeout = 5000;
+            PingOptions options = new PingOptions(64, true);
+            PingReply reply = pingSender.Send("192.168.137.1", timeout, buffer, options);
+
+            return (reply.Status == IPStatus.Success) ? "192.168.137.1" : "localhost";
         }
     }
 }

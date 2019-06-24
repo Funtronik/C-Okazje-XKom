@@ -120,7 +120,7 @@ namespace Okazje.Klasy
         public void initializeClass(int iv_num_of_threads)
         {
 
-            connectionString.Replace("&&&&", getMySQLServerAdress());
+            connectionString = connectionString.Replace("&&&&", getMySQLServerAdress());
 
             ld_thread_ids.Clear();
             gv_num_of_threads = iv_num_of_threads;

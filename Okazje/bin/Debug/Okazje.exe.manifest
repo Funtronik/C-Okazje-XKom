@@ -66,14 +66,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Okazje.exe" size="81312">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Okazje.exe" size="81824">
       <assemblyIdentity name="Okazje" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>Phj3cHjy8BNRn2azRWb0uTd6KA6sp82werrERSLzLWM=</dsig:DigestValue>
+        <dsig:DigestValue>NUPIqt0oluNUKnYgmlEGQZMIQUFIx1IIxVExYfT0g/Y=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

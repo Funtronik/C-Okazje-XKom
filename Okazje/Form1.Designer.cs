@@ -30,6 +30,7 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
             this.PB_SMS = new System.Windows.Forms.PictureBox();
             this.label4 = new System.Windows.Forms.Label();
             this.B_SMS = new System.Windows.Forms.Button();
@@ -46,7 +47,6 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.button4 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PB_SMS)).BeginInit();
             this.tabControl1.SuspendLayout();
@@ -82,6 +82,16 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(184, 661);
             this.panel1.TabIndex = 1;
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(12, 271);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(166, 23);
+            this.button4.TabIndex = 13;
+            this.button4.Text = "Get Price Duplicates";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.Button4_Click_1);
             // 
             // PB_SMS
             // 
@@ -128,7 +138,7 @@
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(166, 23);
             this.button6.TabIndex = 8;
-            this.button6.Text = "Get Product Details";
+            this.button6.Text = "Get Prices";
             this.button6.UseVisualStyleBackColor = true;
             this.button6.Click += new System.EventHandler(this.Button6_Click);
             // 
@@ -228,16 +238,6 @@
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(118, 17);
             this.toolStripStatusLabel3.Text = "toolStripStatusLabel3";
             this.toolStripStatusLabel3.Visible = false;
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(12, 271);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(166, 23);
-            this.button4.TabIndex = 13;
-            this.button4.Text = "Get Price Duplicates";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.Button4_Click_1);
             // 
             // Form1
             // 

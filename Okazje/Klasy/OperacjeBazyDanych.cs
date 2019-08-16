@@ -94,6 +94,13 @@ namespace Okazje.Klasy
             la_MySqlCommands[gv_thread_id].ExecuteNonQuery();
             return true;
         }
+        public bool Update(string iv_command)
+        {
+            init();
+            la_MySqlCommands[gv_thread_id].CommandText = (iv_command);
+            la_MySqlCommands[gv_thread_id].ExecuteNonQuery();
+            return true;
+        }
         public void WipeCategories()
         {
             //init();

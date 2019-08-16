@@ -344,7 +344,9 @@ namespace Okazje
             var lv_prices_inserted = 0;
 
             var la_threads = new Thread[gv_num_of_threads];
-            var lt_product_indexes = Baza.Selection("SELECT p.productId FROM product p WHERE NOT EXISTS (SELECT * FROM productPrices r WHERE p.productId = r.productId AND r.productPriceDate = CURDATE())");
+            var lt_product_indexes = Baza.Selection("SELECT p.productId " +
+                "FROM product p " +
+                "WHERE NOT EXISTS (SELECT * FROM productPrices r WHERE p.productId = r.productId AND r.productPriceDate = CURDATE())");
             var lv_how_much = lt_product_indexes.Rows.Count;
 
             do
@@ -382,7 +384,7 @@ namespace Okazje
             if (ls_product_max_date.Rows[0][0].ToString() == DateTime.UtcNow.ToString("dd.MM.yyyy 00:00:00")) return;
 
             var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
-                     "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId WHERE T0.productId = '" + iv_current + "'");
+                     "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId WHERE T1.linkActive = 'X' AND T0.productId = '" + iv_current + "'");
 
             if (lt_productLinks.Rows.Count == 0) return;
 
@@ -414,7 +416,7 @@ namespace Okazje
                 "data-product-name",
                 "data-product-price",
                 "data-product-brand",
-                "data-product-category",
+                "data-product-category"
             };
 
             var lv_index = 0;
@@ -451,6 +453,14 @@ namespace Okazje
                     }
                     htmlData = null;
                 }
+                // check if product still available/active
+                if (!checkIfActive(lv_html))
+                {
+
+                    Baza.Update("UDPATE productLinks SET linkActive = '' WHERE productUrl = '" + row["productUrl"] + "'");
+                    continue;
+                }
+
                 lt_product_line_to_insert.Rows.Add();
                 //product:
                 foreach (var parameter in la_search_parameters_product)
@@ -640,6 +650,23 @@ namespace Okazje
                 }
             }
             MessageBox.Show("Deleted duplicated rows : " + lv_rows_affected.ToString());
+        }
+        private bool checkIfActive(string iv_html_text)
+        {
+            string[] la_prod_still_active = new string[]
+            {
+                "availabilityText"
+            };
+            foreach (var parameter in la_prod_still_active)
+            {
+                var lv_fetched_val = SpecialMethods.getProductParameter(parameter, iv_html_text);
+                if (lv_fetched_val == "") continue;
+
+                Regex regex = new Regex(@"availabilityStatus"":""(.*?)"",", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                var lt_matches = regex.Matches(lv_fetched_val);
+                return lt_matches[0].Groups[1].ToString() == "Unavailable" ? false : true;
+            }
+            return true;
         }
     }
 }

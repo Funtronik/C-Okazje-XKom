@@ -32,7 +32,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.button4 = new System.Windows.Forms.Button();
             this.PB_SMS = new System.Windows.Forms.PictureBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.L_SMS = new System.Windows.Forms.Label();
             this.B_SMS = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.button6 = new System.Windows.Forms.Button();
@@ -69,7 +69,7 @@
             // 
             this.panel1.Controls.Add(this.button4);
             this.panel1.Controls.Add(this.PB_SMS);
-            this.panel1.Controls.Add(this.label4);
+            this.panel1.Controls.Add(this.L_SMS);
             this.panel1.Controls.Add(this.B_SMS);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.button6);
@@ -104,14 +104,14 @@
             this.PB_SMS.TabIndex = 12;
             this.PB_SMS.TabStop = false;
             // 
-            // label4
+            // L_SMS
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(93, 17);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(48, 13);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "Disabled";
+            this.L_SMS.AutoSize = true;
+            this.L_SMS.Location = new System.Drawing.Point(93, 17);
+            this.L_SMS.Name = "L_SMS";
+            this.L_SMS.Size = new System.Drawing.Size(48, 13);
+            this.L_SMS.TabIndex = 11;
+            this.L_SMS.Text = "Disabled";
             // 
             // B_SMS
             // 
@@ -281,7 +281,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.PictureBox PB_SMS;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label L_SMS;
         private System.Windows.Forms.Button B_SMS;
         private System.Windows.Forms.Button button4;
     }

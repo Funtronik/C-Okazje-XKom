@@ -14,9 +14,10 @@ namespace Okazje.Klasy
 {
     class OperacjeBazyDanych
     {
-        static string connectionString = "SERVER=&&&&" + ";" + "DATABASE=okazje;" + "UID=root;" + "PASSWORD=;;Convert Zero Datetime=True;Connection Timeout=90";
+        public string gv_sql_error = "";
+        static string connectionString = "SERVER=&&&&" + ";" + "DATABASE=okazje;" + "UID=fiori;" + "PASSWORD=raspberry;;Convert Zero Datetime=True;Connection Timeout=90";
         static int gv_thread_id = 0;
-        static int gv_num_of_threads = 100;
+        static int gv_num_of_threads = 1000;
         static MySqlConnection[] la_MySqlConnections = new MySqlConnection[gv_num_of_threads];
         static MySqlCommand[] la_MySqlCommands = new MySqlCommand[gv_num_of_threads];
         static MySqlDataAdapter[] la_MySqlDataAdapters = new MySqlDataAdapter[gv_num_of_threads];
@@ -41,7 +42,7 @@ namespace Okazje.Klasy
             MySqlCommand lv_database_comm;
 
             lv_database_comm = new MySqlCommand(iv_command, la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]]);
-            lv_database_comm.CommandTimeout = 90;
+            lv_database_comm.CommandTimeout = 120;
             la_MySqlDataAdapters[ld_thread_ids[Thread.CurrentThread.Name]] = new MySqlDataAdapter(lv_database_comm);
             la_MySqlDataAdapters[ld_thread_ids[Thread.CurrentThread.Name]].Fill(rt_values);
             la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
@@ -76,15 +77,16 @@ namespace Okazje.Klasy
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandText = (lv_querry);
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandTimeout = 90;
                     la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].ExecuteNonQuery();
-                    la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
                 }
                 lv_success = true;
             }
             catch (Exception e)
             {
                 la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
+                gv_sql_error = e.Message.ToString() + " Table:" + iv_table;
                 return false;
             }
+            la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
             return lv_success;
         }
         public bool Deletion(string iv_command)
@@ -92,13 +94,15 @@ namespace Okazje.Klasy
             init();
             la_MySqlCommands[gv_thread_id].CommandText = (iv_command);
             la_MySqlCommands[gv_thread_id].ExecuteNonQuery();
+            la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
             return true;
         }
         public bool Update(string iv_command)
         {
             init();
-            la_MySqlCommands[gv_thread_id].CommandText = (iv_command);
-            la_MySqlCommands[gv_thread_id].ExecuteNonQuery();
+            la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].CommandText = iv_command;
+            la_MySqlCommands[ld_thread_ids[Thread.CurrentThread.Name]].ExecuteNonQuery();
+            la_MySqlConnections[ld_thread_ids[Thread.CurrentThread.Name]].Close();
             return true;
         }
         public void WipeCategories()
@@ -126,7 +130,6 @@ namespace Okazje.Klasy
         }
         public void initializeClass(int iv_num_of_threads)
         {
-
             connectionString = connectionString.Replace("&&&&", getMySQLServerAdress());
 
             ld_thread_ids.Clear();
@@ -150,14 +153,38 @@ namespace Okazje.Klasy
         }
         private string getMySQLServerAdress()
         {
+            string lv_remoteDBHome = "192.168.1.83";
+            string lv_remoteDB = "192.168.137.82";
             Ping pingSender = new Ping();
             string data = "TEST";
             byte[] buffer = Encoding.ASCII.GetBytes(data);
             int timeout = 5000;
             PingOptions options = new PingOptions(64, true);
-            PingReply reply = pingSender.Send("192.168.137.1", timeout, buffer, options);
+            PingReply reply = pingSender.Send(lv_remoteDB, timeout, buffer, options);
 
-            return (reply.Status == IPStatus.Success) ? "192.168.137.1" : "localhost";
+            return (reply.Status == IPStatus.Success) ? lv_remoteDB : "localhost";
         }
     }
 }
+
+
+//CREATE TABLE okazje.productprices(
+// Id INT(11) DEFAULT NULL,
+// productId INT(11) NOT NULL,
+// productPriceNow FLOAT DEFAULT NULL,
+//  productDomain VARCHAR(20) NOT NULL,
+//  productPriceDate DATE NOT NULL,
+//  productPricePrevious FLOAT DEFAULT NULL,
+//  productDiscounted TINYINT(1) DEFAULT NULL,
+//  productDiscountRate FLOAT DEFAULT NULL,
+//  productOutlet TINYINT(1) NOT NULL,
+//  linkId VARCHAR(2) NOT NULL DEFAULT '0',
+//  PRIMARY KEY(productId, productPriceDate, linkId, productDomain)
+//)
+//ENGINE = INNODB,
+//AVG_ROW_LENGTH = 75,
+//CHARACTER SET utf8mb4,
+//COLLATE utf8mb4_general_ci;
+
+//ALTER TABLE okazje.productprices
+//  ADD UNIQUE INDEX UK_productprices(productId, productPriceDate);

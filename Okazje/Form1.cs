@@ -24,8 +24,9 @@ namespace Okazje
 
         string command;
         int gv_errors_occured = 0;
-        int gv_num_of_threads = 100;
+        int gv_num_of_threads = 1000;
         List<string> gl_errors_email = new List<string>();
+        int gv_prices_inserted = 0;
 
         public Form1()
         {
@@ -83,7 +84,7 @@ namespace Okazje
                 lt_values_to_insert.Rows.Add(row[0], lv_max_index_category++, row[1], iv_domain);
             }
 
-            Baza.Insertion("CATEGORIES", la_columns, lt_values_to_insert, "");
+            Baza.Insertion("categories", la_columns, lt_values_to_insert, "");
 
             clearVariables();
 
@@ -242,7 +243,7 @@ namespace Okazje
             foreach (DataRow row in lt_product_urls_from_cat.Rows)
             {
                 var lt_actual_products = Baza.Selection("SELECT COUNT(*)" +
-                    " FROM productLinks" +
+                    " FROM productlinks" +
                     " WHERE productUrl = '" + row[0] + "'");
                 if (lt_actual_products.Rows[0][0].ToString() != "0")
                     continue;
@@ -251,11 +252,10 @@ namespace Okazje
 
                 lt_product_to_insert.Rows.Add(row[1], lv_id);
                 lt_links_to_insert.Rows.Add(lv_id, row[0], "www.x-kom.pl", "0");
-
             }
             dataGridView1.DataSource = lt_product_to_insert;
-            Baza.Insertion("PRODUCT", ll_columns_products, lt_product_to_insert, "");
-            Baza.Insertion("PRODUCTLINKS", ll_columns_links, lt_links_to_insert, "");
+            Baza.Insertion("product", ll_columns_products, lt_product_to_insert, "");
+            Baza.Insertion("productlinks", ll_columns_links, lt_links_to_insert, "");
 
             SpecialMethods.progressBarDone();
             SpecialMethods.showErrors(gv_errors_occured);
@@ -333,7 +333,6 @@ namespace Okazje
             //SpecialMethods.showErrors(gv_errors_occured);
             //MessageBox.Show("Product details inserted " + lv_details_inserted + ". Prices inserted " + lv_prices_inserted + ".");
             
-            
             //SELECT T0.productId FROM product AS T0 LEFT JOIN productprices as T1 on T1.productId = T0.productId WHERE T1.productPriceDate IS NULL;
             gv_num_of_threads = int.Parse(TB_Number_Of_Threads.Text.ToString());
             Baza.initializeClass(gv_num_of_threads);
@@ -344,15 +343,23 @@ namespace Okazje
             var lv_prices_inserted = 0;
 
             var la_threads = new Thread[gv_num_of_threads];
-            var lt_product_indexes = Baza.Selection("SELECT p.productId " +
+            var lt_product_indexes = Baza.Selection("SELECT CAST(p.productId as INT) AS productId " +
                 "FROM product p " +
-                "WHERE NOT EXISTS (SELECT * FROM productPrices r WHERE p.productId = r.productId AND r.productPriceDate = CURDATE())");
+                "WHERE NOT EXISTS (SELECT * FROM productprices r WHERE p.productId = r.productId AND r.productPriceDate = CURDATE());");
+            lt_product_indexes = SpecialMethods.RemoveDuplicateRows(lt_product_indexes, "productId");
+            lt_product_indexes.DefaultView.Sort = "productId";
+
             var lv_how_much = lt_product_indexes.Rows.Count;
 
             do
             {
                 for (int i = 0; i < gv_num_of_threads; i++)
                 {
+                    if (lv_current > lv_how_much)
+                    {
+                        gv_num_of_threads = i - 1;
+                        return;
+                    }
                     la_threads[i] = new Thread(() => getProductDetails(int.Parse(lt_product_indexes.Rows[lv_current][0].ToString())));
                     la_threads[i].Name = ("Thread" + i.ToString());
                     la_threads[i].Start();
@@ -373,18 +380,19 @@ namespace Okazje
                 EmailNotification.sendErrorOccuredDownloadDetails(gl_errors_email);
                 gl_errors_email.Clear();
             }
+            
             SpecialMethods.progressBarDone();
             SpecialMethods.showErrors(gv_errors_occured);
-            MessageBox.Show("Product details inserted " + lv_details_inserted + ". Prices inserted " + lv_prices_inserted + ".");
+            MessageBox.Show("Prices inserted " + gv_prices_inserted + ".");
         }
 
         private void getProductDetails(int iv_current)
         {
-            var ls_product_max_date = Baza.Selection("SELECT MAX(productPriceDate) FROM productprices WHERE productId = '" + iv_current + "'");
-            if (ls_product_max_date.Rows[0][0].ToString() == DateTime.UtcNow.ToString("dd.MM.yyyy 00:00:00")) return;
+            var ls_product_max_date = Baza.Selection("SELECT productId, MAX(productPriceDate) FROM productprices WHERE productId = '" + iv_current + "'");
+            if (ls_product_max_date.Rows[0][1].ToString() == DateTime.UtcNow.ToString("dd.MM.yyyy 00:00:00")) return;
 
-            var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl FROM product AS T0 " +
-                     "INNER JOIN productLinks AS T1 ON T0.productId = T1.productId WHERE T1.linkActive = 'X' AND T0.productId = '" + iv_current + "'");
+            var lt_productLinks = Baza.Selection("SELECT T0.productId, T1.productUrl, T1.linkActive FROM product AS T0 " +
+                     "INNER JOIN productlinks AS T1 ON T0.productId = T1.productId WHERE T0.productId = '" + iv_current + "'");
 
             if (lt_productLinks.Rows.Count == 0) return;
 
@@ -456,9 +464,13 @@ namespace Okazje
                 // check if product still available/active
                 if (!checkIfActive(lv_html))
                 {
+                    if ((bool)lt_productLinks.Rows[0][2] == true)
+                        Baza.Update("UPDATE productlinks SET linkActive = 0 WHERE productUrl = '" + row["productUrl"] + "'");
 
-                    Baza.Update("UDPATE productLinks SET linkActive = '' WHERE productUrl = '" + row["productUrl"] + "'");
                     continue;
+                }else if ((bool)lt_productLinks.Rows[0][2] == false)
+                {
+                    Baza.Update("UPDATE productlinks SET linkActive = 1 WHERE productUrl = '" + row["productUrl"] + "'");
                 }
 
                 lt_product_line_to_insert.Rows.Add();
@@ -591,7 +603,15 @@ namespace Okazje
             if (lt_product_prices.Rows.Count > 0)
             {
                 var lv_success = Baza.Insertion("productprices", la_product_prices_columns, lt_product_prices, "");
-                //lv_prices_inserted++;
+                
+                if (lv_success)
+                {
+                    gv_prices_inserted++;
+                }
+                else
+                {
+                    gl_errors_email.Add(Baza.gv_sql_error);
+                }
             }
         }
 
@@ -611,13 +631,13 @@ namespace Okazje
                 Okazje.Klasy.Scheduler.IntervalInDays(21, 1, 1, () => { EmailNotification.specialOfferMailNotification("alto"); });
                 Okazje.Klasy.Scheduler.IntervalInDays(22, 1, 1, () => { EmailNotification.specialOfferMailNotification("xkom"); });
                 PB_SMS.Image = Okazje.Properties.Resources.on;
-                B_SMS.Text = "Enabled";
+                L_SMS.Text = "Enabled";
                 PB_SMS.Refresh();
             }
             catch (Exception ex)
             {
                 PB_SMS.Image = Okazje.Properties.Resources.off;
-                B_SMS.Text = "Disabled";
+                L_SMS.Text = "Disabled";
                 PB_SMS.Refresh();
             }
         }
@@ -655,16 +675,14 @@ namespace Okazje
         {
             string[] la_prod_still_active = new string[]
             {
-                "availabilityText"
-            };
+                @"availabilityStatus"":""(.*?)"""
+        };
             foreach (var parameter in la_prod_still_active)
             {
-                var lv_fetched_val = SpecialMethods.getProductParameter(parameter, iv_html_text);
-                if (lv_fetched_val == "") continue;
+                var lv_fetched_val = SpecialMethods.getProductNonStandardParameter(parameter, iv_html_text);
+                if (lv_fetched_val == "") return false;
 
-                Regex regex = new Regex(@"availabilityStatus"":""(.*?)"",", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                var lt_matches = regex.Matches(lv_fetched_val);
-                return lt_matches[0].Groups[1].ToString() == "Unavailable" ? false : true;
+                return (lv_fetched_val.Contains("Available")) ? true : false;
             }
             return true;
         }
